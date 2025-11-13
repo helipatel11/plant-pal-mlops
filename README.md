@@ -175,7 +175,7 @@ streamlit run src/streamlit_app.py
 
 * M.Sc. Computer Science — Carleton University
 * Specializing in MLOps, Cloud Infrastructure (AWS), and Machine Learning
-* [LinkedIn](https://linkedin.com/in/heli-patel) | [GitHub](https://github.com/heli-patel)
+* [LinkedIn](https://linkedin.com/in/helipatelhp) | [GitHub](https://github.com/helipatel11)
 
 ---
 
