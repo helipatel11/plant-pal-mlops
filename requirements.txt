@@ -1,0 +1,10 @@
+tensorflow
+mlflow
+zenml
+deepchecks
+pillow
+streamlit
+scikit-learn
+pandas
+numpy
+opencv-python

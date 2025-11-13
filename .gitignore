@@ -1,0 +1,48 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.log
+
+# --- Virtual environment ---
+.venv/
+env/
+venv/
+ENV/
+
+# --- ZenML and MLflow artifacts ---
+.mlflow/
+zenml/
+mlruns/
+*.db
+
+# --- Model files (exclude saved models) ---
+models/
+!models/.gitkeep  # Keep the folder structure in GitHub
+
+# --- Data files ---
+data/
+datasets/
+*.csv
+*.tsv
+*.json
+*.zip
+
+# --- Streamlit cache ---
+.streamlit/
+.streamlit_cache/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Notebook checkpoints ---
+.ipynb_checkpoints/
+
+# --- Other temporary files ---
+*.tmp
+*.bak
