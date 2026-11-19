@@ -1,182 +1,52 @@
-# Plant Pal (MobileNetV2) — Local MLOps Starter
+# Plant Pal
 
-## What this project contains
-- MobileNetV2-based binary classifier (healthy / unhealthy).
-- MLflow logging of training runs and artifacts.
-- ZenML pipeline stub to orchestrate training.
-- Simple checks and a Streamlit app for inference + feedback collection.
+A healthy/unhealthy leaf classifier built as my first MLOps pipeline (November 2025): MobileNetV2 transfer learning, a ZenML pipeline, MLflow tracking and a local Streamlit app.
 
-## Setup (local)
-1. Create virtual env and install:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # or venv\Scripts\activate on Windows
-   pip install -r requirements.txt
-source .venv/bin/activate
+> **Status:** an early learning project that runs locally. The goal was to learn the MLOps toolchain end to end, not to build an accurate model, so it uses a small sample dataset. See [Limitations](#limitations) for what I'd improve. My later work is the [LLMOps Support Assistant](https://helipatel.com/projects/llmops-support-assistant/).
 
+## What it does
 
-# 🌿 Plant Pal — ML-powered Plant Disease Classification
+- **Model:** MobileNetV2 pre-trained on ImageNet, base frozen, with one sigmoid output trained on top (binary: healthy / unhealthy).
+- **Pipeline (ZenML):** `load_data_step` → `train_model_step` → `evaluate_model_step` (`src/zenml_pipeline.py`).
+- **Tracking (MLflow):** the training step logs the saved model file as a run artifact.
+- **App (Streamlit):** upload a leaf image, get a prediction and a confidence score, and leave feedback, which is saved under `feedback/` (images + CSV).
 
-## 🧠 Overview
+## Project layout
 
-**Plant Pal** is a machine learning application that identifies plant leaf diseases using deep learning.
-The project integrates **ZenML** for MLOps orchestration, **MLflow** for experiment tracking, and **Streamlit** for an interactive web interface.
+| Path | What |
+|---|---|
+| `src/zenml_pipeline.py` | Pipeline definition |
+| `src/run_pipeline.py` | Entry point: runs the pipeline |
+| `src/zenml_steps/` | Load, train and evaluate steps |
+| `src/app/streamlit_app.py` | Prediction app with feedback form |
+| `src/checks/simple_checks.py` | Basic data-generator sanity checks |
+| `src/utils/data_utils.py` | Generator helper with augmentation (not used by the pipeline) |
 
-The model is built using **TensorFlow’s MobileNetV2** architecture and trained on a labeled dataset of healthy and diseased leaves.
+## Run it locally
 
----
-
-## 🧰 Tools & Technologies
-
-| Tool                              | Purpose                                     |
-| --------------------------------- | ------------------------------------------- |
-| **TensorFlow / Keras**            | Model training using MobileNetV2            |
-| **ZenML**                         | Pipeline orchestration and step management  |
-| **MLflow**                        | Tracking model runs, metrics, and artifacts |
-| **Streamlit**                     | Interactive UI for testing trained models   |
-| **NumPy / Pandas / scikit-learn** | Data preprocessing and evaluation           |
-| **Python 3.10+**                  | Core programming language                   |
-| **Virtual Environment**           | Dependency isolation                        |
-
----
-
-## ⚙️ Architecture Overview
-
-```
-📦 Plant Pal
-├── models/
-│   └── latest_model/
-│       └── plant_pal_model.keras      # Latest trained model
-│
-├── src/
-│   ├── zenml_steps/
-│   │   ├── load_data_step.py         # Loads and splits dataset
-│   │   ├── train_model_step.py       # Trains and saves model
-│   │   └── evaluate_model_step.py    # Evaluates model performance
-│   │
-│   ├── run_pipeline.py               # ZenML pipeline entry point
-│   ├── utils/                        # Helper functions (optional)
-│   └── streamlit_app.py              # Streamlit UI to test model
-│
-├── .venv/                            # Virtual environment (ignored in git)
-├── requirements.txt
-└── README.md
-```
-
----
-
-## 🧩 ZenML Pipeline Workflow
-
-The ZenML pipeline includes 3 steps:
-
-1. **`load_data_step`** — Loads and splits the dataset into train/validation sets.
-2. **`train_model_step`** — Trains MobileNetV2 and saves model to `models/latest_model/plant_pal_model.keras`.
-3. **`evaluate_model_step`** — Evaluates accuracy, loss, and logs metrics to MLflow.
-
----
-
-## 🧑‍💻 Setup Instructions
-
-### 1️⃣ Clone and navigate to the project
+Needs Python 3.10+. Images go in `data/train/healthy/` and `data/train/unhealthy/` (the `data/` folder is gitignored).
 
 ```bash
-git clone https://github.com/<your-repo>/plant-pal.git
-cd "Plant Pal"
-```
-
-### 2️⃣ Create and activate virtual environment
-
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Mac/Linux
-# or
-.\.venv\Scripts\activate         # Windows
-```
-
-### 3️⃣ Install dependencies
-
-```bash
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-### 4️⃣ Initialize ZenML
-
-```bash
 zenml init
+python -m src.run_pipeline                 # trains and saves models/latest_model/plant_pal_model.keras
+streamlit run src/app/streamlit_app.py     # prediction app
+mlflow ui                                  # http://127.0.0.1:5000
 ```
 
-### 5️⃣ Run the ZenML pipeline
+## Limitations
 
-```bash
-python -m src.run_pipeline
-```
+- **One batch per split.** `load_data_step` uses `next()` on the generators, which returns a single batch (`batch_size=32`). That covers the current dataset, but a larger one would need the full generator.
+- **Evaluation is basic.** Validation loss and accuracy are printed; there's no separate test set or per-class metrics yet.
+- **MLflow logs the model file,** but not training metrics or parameters, so runs can't be compared side by side yet.
+- **Dependencies aren't pinned** in `requirements.txt`, so installs may differ over time.
+- **The "No — Incorrect" feedback path may need a fix.** It nests Streamlit buttons, and Streamlit resets button state on each rerun, so corrections might not be saved. Not yet verified.
 
-This will:
+## Next steps
 
-* Train your model
-* Log metrics to MLflow
-* Save the model to `models/latest_model/plant_pal_model.keras`
-
----
-
-## 🔍 Experiment Tracking with MLflow
-
-Start the MLflow UI to visualize training metrics and models:
-
-```bash
-mlflow ui
-```
-
-Then visit [http://localhost:5000](http://localhost:5000) in your browser.
-
----
-
-## 🌱 Running the Streamlit App
-
-Once your model is trained, launch the app to test predictions:
-
-```bash
-streamlit run src/streamlit_app.py
-```
-
-**What it does:**
-
-* Loads model from `models/latest_model/plant_pal_model.keras`
-* Allows uploading a leaf image
-* Displays predicted class (Healthy / Diseased)
-
----
-
-## 🧾 Example Commands Summary
-
-| Action                    | Command                              |
-| ------------------------- | ------------------------------------ |
-| Activate venv (Mac/Linux) | `source .venv/bin/activate`          |
-| Activate venv (Windows)   | `.\.venv\Scripts\activate`           |
-| Run ZenML pipeline        | `python -m src.run_pipeline`         |
-| Launch Streamlit UI       | `streamlit run src/streamlit_app.py` |
-| Start MLflow tracking UI  | `mlflow ui`                          |
-
----
-
-## 🧱 Future Improvements
-
-* ✅ Integrate AWS S3 artifact storage for models
-* ✅ Add CI/CD using GitHub Actions for auto-deployment
-* 🔄 Add data versioning using DVC
-* ☁️ Deploy Streamlit app on AWS EC2 / Streamlit Cloud
-* 🧠 Experiment with EfficientNetB0 and fine-tuning
-
----
-
-## 🧑‍🎓 Author
-
-**Heli Patel**
-
-* M.Sc. Computer Science — Carleton University
-* Specializing in MLOps, Cloud Infrastructure (AWS), and Machine Learning
-* [LinkedIn](https://linkedin.com/in/helipatelhp) | [GitHub](https://github.com/helipatel11)
-
----
-
+- Iterate over the full generator so the pipeline scales to larger datasets.
+- Hold out a test set and report per-class precision, recall and a confusion matrix.
+- Log metrics and parameters to MLflow.
+- Pin dependencies.
 
