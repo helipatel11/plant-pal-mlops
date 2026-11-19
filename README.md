@@ -24,7 +24,7 @@ A healthy/unhealthy leaf classifier built as my first MLOps pipeline (November 2
 
 ## Run it locally
 
-Needs Python 3.10+. Images go in `data/train/healthy/` and `data/train/unhealthy/` (the `data/` folder is gitignored).
+Needs Python 3.9+. Images go in `data/train/healthy/` and `data/train/unhealthy/` (the `data/` folder is gitignored).
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -41,7 +41,8 @@ mlflow ui                                  # http://127.0.0.1:5000
 - **Evaluation is basic.** Validation loss and accuracy are printed; there's no separate test set or per-class metrics yet.
 - **MLflow logs the model file,** but not training metrics or parameters, so runs can't be compared side by side yet.
 - **Dependencies aren't pinned** in `requirements.txt`, so installs may differ over time.
-- **The "No — Incorrect" feedback path may need a fix.** It nests Streamlit buttons, and Streamlit resets button state on each rerun, so corrections might not be saved. Not yet verified.
+- **Feedback is collected but not used yet.** "Yes — Correct" saves the image and label. "No — Incorrect" doesn't save: its submit button is nested inside another button, and Streamlit resets button state on each rerun. The pipeline doesn't read `feedback/` yet either.
+- **The confidence score is the probability of "Unhealthy",** even when the label shown is "Healthy", so a healthy leaf shows a low number.
 
 ## Next steps
 
@@ -49,4 +50,5 @@ mlflow ui                                  # http://127.0.0.1:5000
 - Hold out a test set and report per-class precision, recall and a confusion matrix.
 - Log metrics and parameters to MLflow.
 - Pin dependencies.
+- Save corrections with `st.form` or session state, and add feedback images to retraining.
 
